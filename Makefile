@@ -13,3 +13,9 @@ install:
 	sudo cp build/libcrawler_fw* /usr/lib
 	sudo mkdir -p /usr/include/crawler
 	sudo cp include/* /usr/include/crawler
+
+test:
+	cd tests && make test
+
+release: test bin
+	

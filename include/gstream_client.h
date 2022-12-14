@@ -13,12 +13,15 @@ public:
     GstreamClient();
     ~GstreamClient();
     void initializeStream(const char *pipelineConfig);
+    void initializeNonInterableStream(const char *pipelineConfig);
     void stop();
+    void restart();
     void requestNextFrame();
+    static bool gstreamInitialized;
 
 protected:
     virtual void onTerminate() {}
-    virtual void onFrameReceived(Frame<u_char> *frame) = 0;
+    virtual void onFrameReceived(Frame<u_char> *frame) {}
     void dropCurrentFrame();
     void dropAlwaysUnlessNull();
     
@@ -34,11 +37,14 @@ private:
     void initFrame(int width, int height, long length);
     void onFrameReceived();
 
+
     static GstFlowReturn new_preroll(GstAppSink *sink, gpointer data);
 
     static gboolean busCallback(GstBus *bus, GstMessage *message, gpointer data);
 
     static GstFlowReturn newSample(GstAppSink *appsink, gpointer data);
 };
+
+
 
 #endif

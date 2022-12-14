@@ -61,8 +61,9 @@ public:
     {
         if (_mat != nullptr)
         {
-            _mat->release();
             //std::cout << "dealloc Frame matrix\n";
+            _mat->release();
+            
             delete _mat;
         }
         if (data != nullptr)
@@ -74,8 +75,10 @@ public:
 
     cv::Mat *getMatrix(int type)
     {
-        if (this->_mat == nullptr)
+        if (this->_mat == nullptr) {
+            //std::cout << "alloc Frame matrix\n";
             this->_mat = new cv::Mat(height, width, type, this->data);
+        }
         return this->_mat;
     }
 

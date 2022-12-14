@@ -78,6 +78,7 @@ void PubSubClient::on_message(const struct mosquitto_message *message)
 
     char *payload_data = (char *)malloc(message->payloadlen);
     memcpy(payload_data, message->payload, message->payloadlen);
+    payload_data[message->payloadlen] = 0;
 
     std::string topic(message->topic);
     std::string payload(payload_data);

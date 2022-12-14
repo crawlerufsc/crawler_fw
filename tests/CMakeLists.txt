@@ -29,13 +29,27 @@ include_directories(/usr/include/gstreamer-1.0)
 SET(TARGET_H
   ../include/frame.h
   ../include/pubsub_client.h
-
+  ../include/gstream_client.h
+  ../include/network_stream_reader.h
+  ../include/dataset_stream_reader.h
+  ../include/file_utils.h
+  ../include/direct_process_pipeline.h
+  ../include/network_stream_logger.h
+  test_video_source.h
 )
 
 add_executable(
   unittest
   fw_tests.cpp
+#  pubsub_client_test.cpp
+#  gstream_client_test.cpp
+#  network_stream_reader_test.cpp
+  network_stream_logger_test.cpp
   ../src/pubsub_client.cpp
+  ../src/gstream_client.cpp
+  ../src/network_stream_reader.cpp
+  ../src/network_stream_logger.cpp
+
 )
 
 if(THREADS_HAVE_PTHREAD_ARG)
@@ -49,7 +63,7 @@ endif()
 target_link_libraries(unittest 
   PkgConfig::deps 
   PkgConfig::Mosquitto
-    PkgConfig::Mosquittopp
+  PkgConfig::Mosquittopp
   ${GTEST_LIBRARIES} 
   ${GST_APP_LIBRARIES} 
   ${GST_VIDEO_LIBRARIES} 

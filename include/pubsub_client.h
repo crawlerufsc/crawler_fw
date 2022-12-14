@@ -20,8 +20,8 @@ private:
     int getNextMessageId();
 
 protected:
-    virtual void onReceived(std::string topic, std::string payload) = 0;
-    virtual void onStop() = 0;
+    virtual void onReceived(std::string topic, std::string payload) {};
+    virtual void onStop() {};
     const  char *defaultTopic;
     
 

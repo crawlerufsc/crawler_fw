@@ -17,7 +17,7 @@ class NetworkStreamReader : private PubSubClient, private GstreamClient
 private:
     const char *server_ip;
     const char *local_ip;
-    const char *pipelineConfig;
+    char *pipelineConfig;
     const char *streamRequestUri;
     int server_port;
     int local_port;
@@ -35,11 +35,9 @@ private:
     void startRunProcessPipeline();
     void processThr();
     void requestFrameThr();
-    void onRequestNextFrame();
 
     std::mutex *frameMutex;
     bool loop_run;
-    bool frameRequestWaitForAnswer;
     bool asyncProcess;
 
     std::thread *requestFrameThread;

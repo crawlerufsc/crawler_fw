@@ -44,11 +44,11 @@ TEST(PubSubClientTest, SimplePublishSubscribe)
     Publisher p;
     Subscriber s;
 
-    p.Publish("topic1", "PUBLISHED_MSG_1");
+    p.publishTo("topic1", "PUBLISHED_MSG_1");
     ASSERT_TRUE(s.received);
     ASSERT_FALSE(p.received);
 
-    p.Publish("topic11", "PUBLISHED_MSG_1");
+    p.publishTo("topic11", "PUBLISHED_MSG_1");
     ASSERT_FALSE(s.received);
     ASSERT_FALSE(p.received);
 }

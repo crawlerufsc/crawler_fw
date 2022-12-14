@@ -1,25 +1,39 @@
 #include "../include/gstream_client.h"
 
+bool GstreamClient::gstreamInitialized = false;
+
 GstreamClient::GstreamClient()
 {
-    gst_init(NULL, NULL);
+    if (!GstreamClient::gstreamInitialized)
+    {
+        gst_init(NULL, NULL);
+        GstreamClient::gstreamInitialized = true;
+    }
+
     this->dropUnlessNull = false;
+    this->rawFrame = nullptr;
+    this->bus = nullptr;
+    this->pipeline = nullptr;
 }
 
 GstreamClient::~GstreamClient()
 {
-    gst_element_set_state(GST_ELEMENT(pipeline), GST_STATE_PAUSED);
+    gst_element_set_state(GST_ELEMENT(pipeline), GST_STATE_NULL);
 
     if (bus != nullptr)
         gst_object_unref(bus);
 
     gst_object_unref(pipeline);
+
+    if (this->rawFrame != nullptr)
+    {
+        delete this->rawFrame;
+        this->rawFrame = nullptr;
+    }
 }
 
 void GstreamClient::initializeStream(const char *pipelineConfig)
 {
-    printf ("initializeStream()\n");
-    
     GError *error = nullptr;
     pipeline = gst_parse_launch(pipelineConfig, &error);
 
@@ -45,6 +59,24 @@ void GstreamClient::initializeStream(const char *pipelineConfig)
 
     GstAppSinkCallbacks callbacks = {nullptr, GstreamClient::new_preroll, GstreamClient::newSample};
     gst_app_sink_set_callbacks(GST_APP_SINK(sink), &callbacks, this, nullptr);
+
+    gst_element_set_state(GST_ELEMENT(pipeline), GST_STATE_PLAYING);
+}
+
+void GstreamClient::initializeNonInterableStream(const char *pipelineConfig)
+{
+    GError *error = nullptr;
+    pipeline = gst_parse_launch(pipelineConfig, &error);
+
+    if (error)
+    {
+        g_print("could not construct pipeline: %s\n", error->message);
+        g_error_free(error);
+        throw std::invalid_argument("pipelineConfig is invalid");
+    }
+
+    bus = gst_pipeline_get_bus(GST_PIPELINE(pipeline));
+    gst_bus_add_watch(bus, &GstreamClient::busCallback, this);
 
     gst_element_set_state(GST_ELEMENT(pipeline), GST_STATE_PLAYING);
 }
@@ -118,6 +150,8 @@ bool GstreamClient::readStreamData(GstAppSink *sink)
             int width = g_value_get_int(gst_structure_get_value(structure, "width"));
             int height = g_value_get_int(gst_structure_get_value(structure, "height"));
 
+            // printf ("detected size: %dx%d\n", width, height);
+
             if (map.data != nullptr)
             {
                 initFrame(width, height, map.size);
@@ -125,9 +159,10 @@ bool GstreamClient::readStreamData(GstAppSink *sink)
                 gst_buffer_unmap(buffer, &map);
             }
         }
-    } else {
-        printf ("frame drop\n");
     }
+    // else {
+    //     printf ("frame drop\n");
+    // }
 
     gst_sample_unref(sample);
     return true;
@@ -140,7 +175,9 @@ void GstreamClient::onFrameReceived()
 
 GstFlowReturn GstreamClient::newSample(GstAppSink *appsink, gpointer data)
 {
+
     GstreamClient *client = (GstreamClient *)data;
+    // printf ("newSample: response client addr: %p\n", client);
     if (client->readStreamData(appsink))
         client->onFrameReceived();
     return GST_FLOW_OK;
@@ -148,7 +185,11 @@ GstFlowReturn GstreamClient::newSample(GstAppSink *appsink, gpointer data)
 
 void GstreamClient::stop()
 {
-    gst_element_set_state(GST_ELEMENT(pipeline), GST_STATE_PAUSED);
+    gst_element_set_state(GST_ELEMENT(pipeline), GST_STATE_NULL);
+}
+void GstreamClient::restart()
+{
+    gst_element_set_state(GST_ELEMENT(pipeline), GST_STATE_PLAYING);
 }
 
 void GstreamClient::dropCurrentFrame()

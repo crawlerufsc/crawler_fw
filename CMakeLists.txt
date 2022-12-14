@@ -37,6 +37,7 @@ SET(TARGET_H
     include/file_utils.h
     include/gstream_client.h
     include/direct_process_pipeline.h
+    include/network_stream_logger.h
 )
 
 add_library(crawler_fw SHARED
@@ -44,6 +45,7 @@ add_library(crawler_fw SHARED
     src/gstream_client.cpp
     src/network_stream_reader.cpp
     src/dataset_stream_reader.cpp
+    src/network_stream_logger.cpp
 )
 
 set_target_properties(crawler_fw PROPERTIES
