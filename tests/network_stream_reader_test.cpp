@@ -25,7 +25,7 @@ private:
 
     void onReceived(std::string topic, std::string payload) override
     {
-        std::cout << "received connection request on topic " << topic << " payload: '" << payload << "'\n";
+        //std::cout << "received connection request on topic " << topic << " payload: '" << payload << "'\n";
         json s = json::parse(payload);
 
         std::string ip = s["ip"].get<std::string>();

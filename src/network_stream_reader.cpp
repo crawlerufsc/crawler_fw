@@ -91,6 +91,7 @@ void NetworkStreamReader::requestStream()
 
 void NetworkStreamReader::onFrameReceived(Frame<u_char> *frame)
 {
+    //printf("onFrameReceived @%p\n",frame);
     if (!this->loop_run || this->onProcess == nullptr)
         return;
 
@@ -100,6 +101,7 @@ void NetworkStreamReader::onFrameReceived(Frame<u_char> *frame)
     {
         if (procFrame == nullptr)
         {
+            //printf("get frame to process: %p\n", frame);
             procFrame = frame;
             dropCurrentFrame();
         }
@@ -114,13 +116,16 @@ void NetworkStreamReader::onFrameReceived(Frame<u_char> *frame)
 
 void NetworkStreamReader::processThr()
 {
-    if (this->onProcess == nullptr)
+    if (this->onProcess == nullptr) {
+        //printf("onProcess is null\n");
         return;
+    }
 
     while (this->loop_run)
     {
         if (procFrame != nullptr)
         {
+            //printf("calling onProcess on %p\n", procFrame);
             this->onProcess(procFrame);
             delete procFrame;
             procFrame = nullptr;
@@ -151,6 +156,7 @@ void NetworkStreamReader::onReceived(std::string topic, std::string payload)
 
         initializeStream(pipelineConfig);
         startRunProcessPipeline();
+        requestNextFrame();
     }
 }
 

@@ -34,6 +34,8 @@ GstreamClient::~GstreamClient()
 
 void GstreamClient::initializeStream(const char *pipelineConfig)
 {
+    printf ("initializing stream receive for %s\n", pipelineConfig);
+    
     GError *error = nullptr;
     pipeline = gst_parse_launch(pipelineConfig, &error);
 

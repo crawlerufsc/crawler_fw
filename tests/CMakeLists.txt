@@ -35,21 +35,24 @@ SET(TARGET_H
   ../include/file_utils.h
   ../include/direct_process_pipeline.h
   ../include/network_stream_logger.h
+  ../include/resource_manager.h
   test_video_source.h
 )
 
 add_executable(
   unittest
   fw_tests.cpp
-#  pubsub_client_test.cpp
-#  gstream_client_test.cpp
-#  network_stream_reader_test.cpp
+  pubsub_client_test.cpp
+  gstream_client_test.cpp
+  network_stream_reader_test.cpp
   network_stream_logger_test.cpp
+  dataset_stream_reader_test.cpp
+  resource_manager_test.cpp
   ../src/pubsub_client.cpp
   ../src/gstream_client.cpp
   ../src/network_stream_reader.cpp
   ../src/network_stream_logger.cpp
-
+  ../src/dataset_stream_reader.cpp
 )
 
 if(THREADS_HAVE_PTHREAD_ARG)

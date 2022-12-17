@@ -31,7 +31,7 @@ void NetworkStreamLogger::initializeFileOutputStream(const char *file, int local
     ss << "udpsrc port=" << localPort << " ! application/x-rtp, media=(string)video, clock-rate=(int)90000, encoding-name=(string)H264, payload=(int)96 "
     "! rtph264depay ! h264parse ! decodebin ! videoconvert ! x264enc ! matroskamux ! filesink name=sink location=" << file;
 
-    std::cout << "initializing stream with: " << ss.str() << "\n\n";
+    //std::cout << "initializing stream with: " << ss.str() << "\n\n";
     client = new GstreamClient();
     client->initializeNonInterableStream(ss.str().c_str());
 }
@@ -59,10 +59,10 @@ void NetworkStreamLogger::requestStreamStop()
 
     publishTo(streamRequestUri, j.dump());
 
-    printf("client->stop()\n");
+    //printf("client->stop()\n");
 
     client->stop();
-    printf("delete client\n");
+    //printf("delete client\n");
     delete client;
     client = nullptr;
 }

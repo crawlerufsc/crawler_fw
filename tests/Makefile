@@ -11,6 +11,7 @@ bin:
 test: bin
 	./unittest
 	rm unittest
+	rm test_file.mkv
 
 clean:
 	rm -rf build unittest

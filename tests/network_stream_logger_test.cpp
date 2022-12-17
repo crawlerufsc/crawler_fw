@@ -103,9 +103,32 @@ TEST(NetworkStreamLoggerTst, SimpleFileLog)
     logger->withStreamRequestUri("/tests/request");
     logger->requestStreamStart();
 
-    std::this_thread::sleep_for(std::chrono::milliseconds(10000));
+    std::this_thread::sleep_for(std::chrono::milliseconds(2000));
     logger->requestStreamStop();
 
     delete logger;
     delete server;
+}
+
+TEST(NetworkStreamLoggerTst, CreateAndDestroyMultipleTimes)
+{
+    DummyServerStreamLogger *server = new DummyServerStreamLogger();
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+    for (int i = 0; i < 10; i++)
+    {
+        NetworkStreamLogger *logger = new NetworkStreamLogger(
+            "test_file.mkv",
+            "127.0.0.1",
+            1883,
+            "127.0.0.1",
+            40002);
+
+        logger->withStreamRequestUri("/tests/request");
+        logger->requestStreamStart();
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+        logger->requestStreamStop();
+        delete logger;
+    }
 }

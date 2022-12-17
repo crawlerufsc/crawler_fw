@@ -24,6 +24,12 @@ PubSubClient::PubSubClient(const char *mqttHost, int mqttPort)
     connect_async(this->mqttHost, this->mqttPort, 60);
 }
 
+PubSubClient::~PubSubClient() {
+    if (is_connected) {
+        Stop();
+    }
+}
+
 void PubSubClient::on_connect(int rc)
 {
     if (!rc)
@@ -52,7 +58,7 @@ bool PubSubClient::blockUntilConnected(int timeout_ms)
 
 void PubSubClient::subscribeTo(const char *topic)
 {
-    printf("subscribing to topic %s\n", topic);
+    //printf("subscribing to topic %s\n", topic);
     int id = getNextMessageId();
     this->subscribe(&id, topic, 1);
 }
@@ -67,8 +73,6 @@ int PubSubClient::getNextMessageId()
 void PubSubClient::on_disconnect(int rc)
 {
     is_connected = false;
-    // loop_start();
-    // connect_async(this->mqttHost, this->mqttPort, 60);
 }
 
 void PubSubClient::on_message(const struct mosquitto_message *message)
@@ -94,10 +98,6 @@ void PubSubClient::publishTo(const char *topic, std::string payload)
 
 void PubSubClient::Stop()
 {
+    disconnect();
     loop_stop();
 }
-
-// void PubSubClient::runMqttLoop()
-// {
-//     loop_forever();
-// }

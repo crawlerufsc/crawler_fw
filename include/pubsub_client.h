@@ -29,6 +29,7 @@ protected:
 public:
     PubSubClient(const char *mqttHost, int mqttPort, const char *topic);
     PubSubClient(const char *mqttHost, int mqttPort);
+    ~PubSubClient();
 
     void publishTo(const char *topic, std::string payload);
     

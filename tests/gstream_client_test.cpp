@@ -18,7 +18,7 @@ public:
 protected:
     void onFrameReceived(Frame<u_char> *frame) override
     {
-        std::cout << "received a new frame\n";
+        //std::cout << "received a new frame\n";
         ASSERT_EQ(frame->width, 640);
         ASSERT_EQ(frame->height, 480);
         frameCount++;
