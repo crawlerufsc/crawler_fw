@@ -12,6 +12,7 @@ private:
     int local_port;
     const char *streamRequestUri;
     GstreamClient *client;
+    bool is_started;
 
 private:
     void initializeFileOutputStream(const char *file, int localPort);
@@ -24,6 +25,10 @@ public:
     NetworkStreamLogger *withStreamRequestUri(const char *streamRequestUri);
     void requestStreamStart();
     void requestStreamStop();
+
+    bool isLogging() {
+        return is_started;
+    }
 };
 
 #endif

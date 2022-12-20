@@ -11,6 +11,7 @@
 #include <thread>
 #include "pubsub_client.h"
 #include "gstream_client.h"
+#include <functional>
 
 class NetworkStreamReader : private PubSubClient, private GstreamClient
 {
@@ -25,7 +26,7 @@ private:
     bool isReceivingStream;
     Frame<u_char> *procFrame;
 
-    void (*onProcess)(Frame<u_char> *frame);
+    std::function<void(Frame<u_char> *)> *onProcess;
 
     void requestStream();
 
@@ -50,7 +51,7 @@ public:
 
     NetworkStreamReader *withStreamRequestUri(const char *streamRequestUri);
     NetworkStreamReader *withBufferSize(int bufferSize);
-    NetworkStreamReader *withOnProcessCallback(void (*onProcess)(Frame<u_char> *));
+    NetworkStreamReader *withOnProcessCallback(std::function<void(Frame<u_char> *)> *onProcess);
     NetworkStreamReader *async();
 
     void connect();

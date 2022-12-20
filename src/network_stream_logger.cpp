@@ -11,6 +11,7 @@ NetworkStreamLogger::NetworkStreamLogger(const char *file, const char *pubSubSer
     this->client = nullptr;
     this->local_ip = localIP;
     this->local_port = localPort;
+    this->is_started = false;
 }
 
 NetworkStreamLogger::~NetworkStreamLogger()
@@ -34,17 +35,22 @@ void NetworkStreamLogger::initializeFileOutputStream(const char *file, int local
     //std::cout << "initializing stream with: " << ss.str() << "\n\n";
     client = new GstreamClient();
     client->initializeNonInterableStream(ss.str().c_str());
+    this->is_started = true;
 }
 
 void NetworkStreamLogger::requestStreamStart()
 {
     blockUntilConnected(2000);
 
+    printf ("requestStreamStart: \n");
+    printf ("local_ip = %s\nlocal_port=%d\n", local_ip, local_port);  
     json j{
         {"ip", local_ip},
         {"port", local_port},
         {"enable", true},
     };
+
+    printf ("json: %s\n", j.dump().c_str());  
 
     publishTo(streamRequestUri, j.dump());
 }
@@ -65,6 +71,7 @@ void NetworkStreamLogger::requestStreamStop()
     //printf("delete client\n");
     delete client;
     client = nullptr;
+    this->is_started = false;
 }
 
 void NetworkStreamLogger::onReceived(std::string topic, std::string payload)

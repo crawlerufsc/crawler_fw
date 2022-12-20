@@ -46,7 +46,7 @@ NetworkStreamReader *NetworkStreamReader::withBufferSize(int bufferSize)
     return this;
 }
 
-NetworkStreamReader *NetworkStreamReader::withOnProcessCallback(void (*onProcess)(StreamData *))
+NetworkStreamReader *NetworkStreamReader::withOnProcessCallback(std::function<void(Frame<u_char> *)> *onProcess)
 {
     this->onProcess = onProcess;
     return this;
@@ -108,7 +108,7 @@ void NetworkStreamReader::onFrameReceived(Frame<u_char> *frame)
     }
     else
     {
-        onProcess(frame);
+        (*onProcess)(frame);
     }
 
     this->frameMutex->unlock();
@@ -125,8 +125,7 @@ void NetworkStreamReader::processThr()
     {
         if (procFrame != nullptr)
         {
-            //printf("calling onProcess on %p\n", procFrame);
-            this->onProcess(procFrame);
+            (*this->onProcess)(procFrame);
             delete procFrame;
             procFrame = nullptr;
         }
