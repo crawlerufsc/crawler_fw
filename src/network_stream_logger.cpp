@@ -3,9 +3,11 @@
 #include <nlohmann/json.hpp>
 #include <sstream>
 
+#define PUBSUB_STREAM_RESPONSE_URI "/vision-module/status/stream"
+
 using nlohmann::json;
 
-NetworkStreamLogger::NetworkStreamLogger(const char *file, const char *pubSubServer, int pubSubPort, const char *localIP, int localPort) : PubSubClient(pubSubServer, pubSubPort, "/vision-module/status/stream")
+NetworkStreamLogger::NetworkStreamLogger(const char *file, const char *pubSubServer, int pubSubPort, const char *localIP, int localPort) : PubSubClient(pubSubServer, pubSubPort)
 {
     this->file = file;
     this->client = nullptr;
@@ -20,67 +22,82 @@ NetworkStreamLogger::~NetworkStreamLogger()
         delete client;
 }
 
-NetworkStreamLogger *NetworkStreamLogger::withStreamRequestUri(const char *streamRequestUri)
+NetworkStreamLogger *NetworkStreamLogger::withStreamUri(const char *requestUri, const char *responseUri)
 {
-    this->streamRequestUri = streamRequestUri;
+    this->streamRequestUri = requestUri;
+    this->streamResponseUri = responseUri;
     return this;
+}
+
+bool NetworkStreamLogger::build()
+{
+    if (!blockUntilConnected(2000))
+        return false;
+
+    if (streamResponseUri != nullptr)
+        subscribeTo(streamResponseUri);
+
+    return true;
 }
 
 void NetworkStreamLogger::initializeFileOutputStream(const char *file, int localPort)
 {
     std::stringstream ss;
     ss << "udpsrc port=" << localPort << " ! application/x-rtp, media=(string)video, clock-rate=(int)90000, encoding-name=(string)H264, payload=(int)96 "
-    "! rtph264depay ! h264parse ! decodebin ! videoconvert ! x264enc ! matroskamux ! filesink name=sink location=" << file;
+                                         "! rtph264depay ! h264parse ! decodebin ! videoconvert ! x264enc ! matroskamux ! filesink name=sink location="
+       << file;
 
-    //std::cout << "initializing stream with: " << ss.str() << "\n\n";
+    // std::cout << "\ninitializing LOG stream with: " << ss.str() << "\n\n";
+
     client = new GstreamClient();
     client->initializeNonInterableStream(ss.str().c_str());
     this->is_started = true;
 }
 
-void NetworkStreamLogger::requestStreamStart()
+void NetworkStreamLogger::requestStream(bool enable)
 {
-    blockUntilConnected(2000);
+    if (streamRequestUri == nullptr)
+        return;
 
-    printf ("requestStreamStart: \n");
-    printf ("local_ip = %s\nlocal_port=%d\n", local_ip, local_port);  
     json j{
         {"ip", local_ip},
         {"port", local_port},
-        {"enable", true},
+        {"enable", enable},
     };
 
-    printf ("json: %s\n", j.dump().c_str());  
-
     publishTo(streamRequestUri, j.dump());
+}
+
+void NetworkStreamLogger::requestStreamStart()
+{
+    requestStream(true);
 }
 
 void NetworkStreamLogger::requestStreamStop()
 {
-    json j{
-        {"ip", local_ip},
-        {"port", local_port},
-        {"enable", false},
-    };
+    requestStream(false);
+    this->is_started = false;
 
-    publishTo(streamRequestUri, j.dump());
-
-    //printf("client->stop()\n");
+    if (client == nullptr)
+        return;
 
     client->stop();
-    //printf("delete client\n");
     delete client;
     client = nullptr;
-    this->is_started = false;
 }
 
 void NetworkStreamLogger::onReceived(std::string topic, std::string payload)
 {
-    json p = json::parse(payload);
-
-    if (p["targetIP"].get<std::string>() == std::string(local_ip) &&
-        p["targetPort"].get<int>() == local_port)
+    try
     {
-        initializeFileOutputStream(file, local_port);
+        json p = json::parse(payload);
+
+        if (p["targetIP"].get<std::string>() == std::string(local_ip) &&
+            p["targetPort"].get<int>() == local_port)
+        {
+            initializeFileOutputStream(file, local_port);
+        }
+    } catch (...) {
+        printf ("NetworkStreamLogger: onReceived(): error parsing payload: %s\n\n", payload.c_str());
     }
 }

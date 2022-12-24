@@ -53,6 +53,7 @@ public:
     NetworkStreamReader *withBufferSize(int bufferSize);
     NetworkStreamReader *withOnProcessCallback(std::function<void(Frame<u_char> *)> *onProcess);
     NetworkStreamReader *async();
+    NetworkStreamReader *processAsRaw();
 
     void connect();
     bool isConnected();

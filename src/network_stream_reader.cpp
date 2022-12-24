@@ -23,6 +23,10 @@ NetworkStreamReader::NetworkStreamReader(const char *serverIP, int serverPort, c
     this->frameMutex = new std::mutex();
     this->procFrame = nullptr;
     this->pipelineConfig = nullptr;
+
+    this->asyncProcess = false;
+    this->streamRequestUri = nullptr;
+    this->onProcess = nullptr;
 }
 
 NetworkStreamReader ::~NetworkStreamReader()
@@ -68,6 +72,7 @@ void NetworkStreamReader::connect()
     if (pipelineConfig == nullptr)
     {
         pipelineConfig = (char *)malloc(sizeof(char) * 512);
+
         sprintf(pipelineConfig, "udpsrc port=%d "
                                 "! application/x-rtp, media=(string)video, clock-rate=(int)90000, encoding-name=(string)H264, payload=(int)96 "
                                 "! rtph264depay ! decodebin ! videoconvert "
@@ -91,7 +96,7 @@ void NetworkStreamReader::requestStream()
 
 void NetworkStreamReader::onFrameReceived(Frame<u_char> *frame)
 {
-    //printf("onFrameReceived @%p\n",frame);
+    // printf("onFrameReceived @%p\n",frame);
     if (!this->loop_run || this->onProcess == nullptr)
         return;
 
@@ -101,7 +106,7 @@ void NetworkStreamReader::onFrameReceived(Frame<u_char> *frame)
     {
         if (procFrame == nullptr)
         {
-            //printf("get frame to process: %p\n", frame);
+            // printf("get frame to process: %p\n", frame);
             procFrame = frame;
             dropCurrentFrame();
         }
@@ -116,8 +121,9 @@ void NetworkStreamReader::onFrameReceived(Frame<u_char> *frame)
 
 void NetworkStreamReader::processThr()
 {
-    if (this->onProcess == nullptr) {
-        //printf("onProcess is null\n");
+    if (this->onProcess == nullptr)
+    {
+        // printf("onProcess is null\n");
         return;
     }
 
